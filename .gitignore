@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
+
+# Virtual Environment
+venv/
+env/
+.venv/
+.conda/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/*.log
+
+# Core dumps
+*.core
+
+# Environment
+.env
+.env.local
+
+# User preferences (runtime)
+config/user_preferences.json
+
+# Scan results & generated scripts
+data/scan_results/
+data/reports/
+*_run.sh
+*_run.bat
+
+# History database
+data/history.json
+
+# Temporary
+*.tmp
+*.temp

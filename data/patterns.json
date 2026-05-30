@@ -1,0 +1,252 @@
+[
+  {
+    "pattern": "/docker/",
+    "name": "Docker 容器数据",
+    "enabled": true
+  },
+  {
+    "pattern": "/node_modules/",
+    "name": "Node.js 程序依赖",
+    "enabled": true
+  },
+  {
+    "pattern": "/\\.git/",
+    "name": "Git 版本控制",
+    "enabled": true
+  },
+  {
+    "pattern": "/cs/cstrike/",
+    "name": "CS 1.6 游戏文件",
+    "enabled": true
+  },
+  {
+    "pattern": "/cstrike/",
+    "name": "CS 游戏模组",
+    "enabled": true
+  },
+  {
+    "pattern": "/valve/cl_dlls/",
+    "name": "Half-Life 引擎 DLL",
+    "enabled": true
+  },
+  {
+    "pattern": "/valve/models/",
+    "name": "Half-Life 模型文件",
+    "enabled": true
+  },
+  {
+    "pattern": "/valve/sound/",
+    "name": "Half-Life 音频资源",
+    "enabled": true
+  },
+  {
+    "pattern": "/valve/sprites/",
+    "name": "Half-Life 精灵图",
+    "enabled": true
+  },
+  {
+    "pattern": "\\bhl\\.exe\\b",
+    "name": "Half-Life 可执行文件",
+    "enabled": true
+  },
+  {
+    "pattern": "\\.minecraft/",
+    "name": "Minecraft 游戏文件",
+    "enabled": true
+  },
+  {
+    "pattern": "Minecraft Launcher",
+    "name": "Minecraft 启动器",
+    "enabled": true
+  },
+  {
+    "pattern": "SMAPI",
+    "name": "Stardew Valley 模组加载器",
+    "enabled": true
+  },
+  {
+    "pattern": "FL[ _]?Studio",
+    "name": "FL Studio 音乐软件",
+    "enabled": true
+  },
+  {
+    "pattern": "Adobe Premiere",
+    "name": "Adobe Premiere 安装包",
+    "enabled": true
+  },
+  {
+    "pattern": "Premiere Pro",
+    "name": "Adobe Premiere Pro",
+    "enabled": true
+  },
+  {
+    "pattern": "\\.lrcat-data",
+    "name": "Lightroom 编目数据",
+    "enabled": true
+  },
+  {
+    "pattern": "/REAPER/",
+    "name": "REAPER 音频工作站",
+    "enabled": true
+  },
+  {
+    "pattern": "/rootfs/",
+    "name": "WSL Linux 子系统",
+    "enabled": true
+  },
+  {
+    "pattern": "QQMusicCache",
+    "name": "QQ 音乐运行时缓存",
+    "enabled": true
+  },
+  {
+    "pattern": "WebkitCache",
+    "name": "浏览器内核缓存",
+    "enabled": true
+  },
+  {
+    "pattern": "phpMyAdmin",
+    "name": "phpMyAdmin 管理工具",
+    "enabled": true
+  },
+  {
+    "pattern": "/vendor/",
+    "name": "PHP/Composer 依赖",
+    "enabled": true
+  },
+  {
+    "pattern": "vaultwarden",
+    "name": "Vaultwarden 密码管理器",
+    "enabled": true
+  },
+  {
+    "pattern": "ARCTIME_PRO",
+    "name": "ARCTIME 字幕软件",
+    "enabled": true
+  },
+  {
+    "pattern": "ApowerMirror",
+    "name": "ApowerMirror 投屏工具",
+    "enabled": true
+  },
+  {
+    "pattern": "搞机工具箱",
+    "name": "安卓工具箱",
+    "enabled": true
+  },
+  {
+    "pattern": "MAA-",
+    "name": "MAA 游戏助手",
+    "enabled": true
+  },
+  {
+    "pattern": "PaddleOCR",
+    "name": "PaddleOCR 识别引擎",
+    "enabled": true
+  },
+  {
+    "pattern": "/\\.bf/",
+    "name": "Billfish 素材管理",
+    "enabled": true
+  },
+  {
+    "pattern": "\\.Spotlight-V100",
+    "name": "macOS Spotlight 索引",
+    "enabled": true
+  },
+  {
+    "pattern": "etc/ssl/certs/",
+    "name": "SSL 根证书",
+    "enabled": true
+  },
+  {
+    "pattern": "/jre",
+    "name": "Java 运行环境",
+    "enabled": true
+  },
+  {
+    "pattern": "particleman\\.dll",
+    "name": "CS 游戏 DLL",
+    "enabled": true
+  },
+  {
+    "pattern": "trusted\\.libraries",
+    "name": "Java 安全库",
+    "enabled": true
+  },
+  {
+    "pattern": "/steam/",
+    "name": "Steam 平台文件",
+    "enabled": true
+  },
+  {
+    "pattern": "\\.cena\\b",
+    "name": "CENA 评测系统配置",
+    "enabled": true
+  },
+  {
+    "pattern": "compilers/",
+    "name": "C++ 编译器头文件",
+    "enabled": true
+  },
+  {
+    "pattern": "/lib/git-core/",
+    "name": "Git 核心二进制",
+    "enabled": true
+  },
+  {
+    "pattern": "/lib/python[23]\\.\\d+/dist-packages/",
+    "name": "Python 系统包",
+    "enabled": true
+  },
+  {
+    "pattern": "/lib/gnupg",
+    "name": "GPG 加密工具",
+    "enabled": true
+  },
+  {
+    "pattern": "/lib/man-db/",
+    "name": "Linux man 手册库",
+    "enabled": true
+  },
+  {
+    "pattern": "/lib/gold-ld/",
+    "name": "GNU 链接器",
+    "enabled": true
+  },
+  {
+    "pattern": "/lib/polkit",
+    "name": "Linux 权限管理",
+    "enabled": true
+  },
+  {
+    "pattern": "/lib/netplan/",
+    "name": "Linux 网络配置",
+    "enabled": true
+  },
+  {
+    "pattern": "/lib/pm-utils/",
+    "name": "Linux 电源管理",
+    "enabled": true
+  },
+  {
+    "pattern": "/etc/rcS\\.d/",
+    "name": "Linux 启动脚本",
+    "enabled": true
+  },
+  {
+    "pattern": "/etc/sensors\\.d/",
+    "name": "Linux 传感器配置",
+    "enabled": true
+  },
+  {
+    "pattern": "/etc/security/opasswd",
+    "name": "Linux 安全文件",
+    "enabled": true
+  },
+  {
+    "pattern": "Cena/compilers/",
+    "name": "CENA 编译器环境",
+    "enabled": true
+  }
+]
