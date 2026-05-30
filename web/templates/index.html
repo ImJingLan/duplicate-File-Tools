@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件去重管理工具</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="app-header">
+        <h1 class="app-title">&#128451; 文件去重管理工具</h1>
+        <nav class="tab-nav" data-component="tab-nav">
+            <button class="tab-btn active" data-tab="tab-scan" data-tab-index="0">
+                &#128269; 扫描任务
+            </button>
+            <button class="tab-btn" data-tab="tab-results" data-tab-index="1">
+                &#128202; 扫描结果
+            </button>
+            <button class="tab-btn" data-tab="tab-dedup" data-tab-index="2">
+                &#128260; 去重操作
+            </button>
+            <button class="tab-btn" data-tab="tab-patterns" data-tab-index="3">
+                &#128737; 保护规则
+            </button>
+            <button class="tab-btn" data-tab="tab-history" data-tab-index="4">
+                &#128203; 历史记录
+            </button>
+        </nav>
+    </header>
+
+    <main class="app-main">
+        <section id="tab-scan" class="tab-panel active" data-component="scan-panel">
+            <div class="panel-grid">
+                <div class="card" data-component="scan-form-card">
+                    <h2 class="card-title">&#9881; 扫描配置</h2>
+                    <form id="scan-form" class="form" autocomplete="off">
+                        <div class="form-group">
+                            <label for="scan-directory">目标目录</label>
+                            <div class="input-with-btn">
+                                <input type="text" id="scan-directory" name="directory"
+                                       placeholder="请输入要扫描的目录路径" required>
+                                <button type="button" id="btn-browse-dir" class="btn btn-secondary"
+                                        data-action="browse-dir">浏览…</button>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="scan-min-size">最小文件大小 (字节)</label>
+                                <input type="number" id="scan-min-size" name="min_size"
+                                       value="0" min="0" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label for="scan-algorithm">哈希算法</label>
+                                <select id="scan-algorithm" name="algorithm">
+                                    <option value="md5" selected>MD5</option>
+                                    <option value="sha256">SHA-256</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="scan-exclude-patterns">排除模式（逗号分隔）</label>
+                            <input type="text" id="scan-exclude-patterns" name="exclude_patterns"
+                                   placeholder="例如: *.tmp, *.log, __pycache__">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" id="btn-start-scan" class="btn btn-primary"
+                                    data-action="start-scan">&#9654; 开始扫描</button>
+                            <button type="button" id="btn-stop-scan" class="btn btn-danger"
+                                    data-action="stop-scan" disabled>&#9632; 停止</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card" data-component="scan-status-card">
+                    <h2 class="card-title">&#128336; 扫描状态</h2>
+                    <div id="scan-status-container" class="scan-status">
+                        <div class="status-info">
+                            <span class="status-badge status-idle" id="scan-status-badge">就绪</span>
+                            <span class="status-task-id" id="current-task-id"></span>
+                        </div>
+                        <div class="progress-wrapper">
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" id="scan-progress-bar" style="width: 0%;"></div>
+                            </div>
+                            <span class="progress-text" id="scan-progress-text">0%</span>
+                        </div>
+                        <div class="progress-detail" id="scan-progress-detail"></div>
+                        <div class="scan-error" id="scan-error-msg" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" data-component="task-list-card">
+                <h2 class="card-title">&#128203; 任务列表</h2>
+                <div class="table-scroll">
+                    <table class="table" id="task-list-table" data-component="task-list">
+                        <thead>
+                            <tr>
+                                <th>任务 ID</th>
+                                <th>目录</th>
+                                <th>文件数</th>
+                                <th>状态</th>
+                                <th>开始时间</th>
+                                <th>完成时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="task-list-body">
+                            <tr class="table-empty">
+                                <td colspan="7">暂无扫描任务</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-results" class="tab-panel" data-component="results-panel">
+            <div class="results-actions top-actions">
+                <div class="form-group">
+                    <label for="results-task-select">选择扫描任务</label>
+                    <select id="results-task-select" data-component="results-task-select">
+                        <option value="">-- 请选择已完成的任务 --</option>
+                    </select>
+                </div>
+                <button type="button" id="btn-load-results" class="btn btn-primary"
+                        data-action="load-results">&#128269; 加载结果</button>
+            </div>
+
+            <div class="summary-cards" id="results-summary-cards" data-component="results-summary"
+                 style="display: none;">
+                <div class="summary-card">
+                    <div class="summary-value" id="summary-total-files">0</div>
+                    <div class="summary-label">&#128196; 文件总数</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="summary-groups">0</div>
+                    <div class="summary-label">&#128204; 重复组数</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="summary-duplicates">0</div>
+                    <div class="summary-label">&#128462; 重复文件数</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="summary-savable-size">0 MB</div>
+                    <div class="summary-label">&#128190; 可节省空间</div>
+                </div>
+            </div>
+
+            <div class="card" id="results-group-card" data-component="results-groups" style="display: none;">
+                <h2 class="card-title">&#128202; 重复文件组</h2>
+                <div class="results-toolbar">
+                    <span id="results-info" class="results-info"></span>
+                    <button type="button" id="btn-goto-dedup" class="btn btn-primary"
+                            data-action="goto-dedup" disabled>&#10132; 继续去重</button>
+                </div>
+                <div class="table-scroll">
+                    <table class="table" id="results-groups-table">
+                        <thead>
+                            <tr>
+                                <th class="col-expand"></th>
+                                <th>组 ID</th>
+                                <th>文件列表</th>
+                                <th>文件大小</th>
+                                <th>重复数</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-groups-body">
+                            <tr class="table-empty">
+                                <td colspan="5">请先加载扫描结果</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-dedup" class="tab-panel" data-component="dedup-panel">
+            <div class="card" data-component="dedup-config-card">
+                <h2 class="card-title">&#9881; 去重配置</h2>
+
+                <div class="form-row align-end">
+                    <div class="form-group">
+                        <label for="dedup-task-select">选择扫描任务</label>
+                        <select id="dedup-task-select" data-component="dedup-task-select">
+                            <option value="">-- 请选择已完成的任务 --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dedup-mode">去重模式</label>
+                        <select id="dedup-mode" name="mode" data-component="dedup-mode-select">
+                            <option value="keep_best" selected>智能评分（推荐）</option>
+                            <option value="keep_largest">保留最大文件</option>
+                            <option value="keep_newest">保留最新文件</option>
+                            <option value="keep_by_path_pattern">按路径规则</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" id="dedup-path-pattern-group" style="display: none;"
+                     data-component="dedup-path-pattern">
+                    <label for="dedup-path-pattern">路径匹配正则表达式</label>
+                    <input type="text" id="dedup-path-pattern" name="path_pattern"
+                           placeholder="例如: .*\\\\backup\\\\.*  匹配 backup 目录下的文件">
+                </div>
+
+                <div class="form-group">
+                    <label for="dedup-staging-dir">暂存目录（被移除的文件将移动到此）</label>
+                    <input type="text" id="dedup-staging-dir" name="staging_dir"
+                           placeholder="默认为配置中的暂存目录">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="btn-analyze-preview" class="btn btn-primary"
+                            data-action="analyze-preview">&#128270; 分析预览</button>
+                    <button type="button" id="btn-generate-script" class="btn btn-secondary"
+                            data-action="generate-script" disabled>&#128196; 生成脚本</button>
+                </div>
+            </div>
+
+            <div class="card" id="dedup-analysis-card" data-component="dedup-analysis" style="display: none;">
+                <h2 class="card-title">&#128200; 分析结果</h2>
+                <div class="dedup-analysis-tabs">
+                    <button class="sub-tab-btn active" data-dedup-tab="keep-files">&#9989; 保留文件</button>
+                    <button class="sub-tab-btn" data-dedup-tab="remove-files">&#10060; 移除文件</button>
+                    <button class="sub-tab-btn" data-dedup-tab="protected-files">&#128737; 受保护文件</button>
+                </div>
+                <div class="dedup-analysis-content">
+                    <div class="sub-tab-panel active" id="dedup-keep-files" data-dedup-panel="keep-files">
+                        <div class="table-scroll">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>组 ID</th>
+                                        <th>文件路径</th>
+                                        <th>大小</th>
+                                        <th>修改时间</th>
+                                        <th>评分</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dedup-keep-body">
+                                    <tr class="table-empty">
+                                        <td colspan="5">暂无分析结果</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="sub-tab-panel" id="dedup-remove-files" data-dedup-panel="remove-files">
+                        <div class="table-scroll">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>组 ID</th>
+                                        <th>文件路径</th>
+                                        <th>大小</th>
+                                        <th>修改时间</th>
+                                        <th>评分</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dedup-remove-body">
+                                    <tr class="table-empty">
+                                        <td colspan="5">暂无分析结果</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="sub-tab-panel" id="dedup-protected-files" data-dedup-panel="protected-files">
+                        <div class="table-scroll">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>组 ID</th>
+                                        <th>文件路径</th>
+                                        <th>大小</th>
+                                        <th>修改时间</th>
+                                        <th>保护类别</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dedup-protected-body">
+                                    <tr class="table-empty">
+                                        <td colspan="5">暂无分析结果</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" id="dedup-script-card" data-component="dedup-script" style="display: none;">
+                <h2 class="card-title">&#128221; 执行脚本</h2>
+                <textarea id="dedup-script-preview" class="script-preview" rows="16"
+                          readonly placeholder="脚本内容将在分析后生成…" data-component="script-preview"></textarea>
+                <div class="form-actions">
+                    <button type="button" id="btn-save-script" class="btn btn-secondary"
+                            data-action="save-script" disabled>&#128190; 保存脚本</button>
+                    <button type="button" id="btn-execute-dedup" class="btn btn-danger"
+                            data-action="execute-dedup" disabled>&#9888; 直接执行</button>
+                </div>
+                <div class="exec-result" id="dedup-exec-result" style="display: none;"
+                     data-component="dedup-exec-result"></div>
+            </div>
+        </section>
+
+        <section id="tab-patterns" class="tab-panel" data-component="patterns-panel">
+            <div class="panel-grid">
+                <div class="card" data-component="patterns-list-card">
+                    <div class="card-header-actions">
+                        <h2 class="card-title">&#128737; 保护规则列表</h2>
+                        <div class="card-actions">
+                            <button type="button" id="btn-reload-patterns" class="btn btn-secondary btn-sm"
+                                    data-action="reload-patterns">&#8635; 重新加载</button>
+                            <button type="button" id="btn-save-patterns" class="btn btn-primary btn-sm"
+                                    data-action="save-patterns">&#128190; 保存到文件</button>
+                        </div>
+                    </div>
+                    <div class="table-scroll">
+                        <table class="table" id="patterns-table" data-component="patterns-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-index">#</th>
+                                    <th>模式 / 正则</th>
+                                    <th>名称</th>
+                                    <th class="col-toggle">启用</th>
+                                    <th class="col-actions">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="patterns-table-body">
+                                <tr class="table-empty">
+                                    <td colspan="5">暂无保护规则</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card" data-component="patterns-add-card">
+                    <h2 class="card-title">&#10133; 添加规则</h2>
+                    <form id="pattern-add-form" class="form" autocomplete="off"
+                          data-component="pattern-add-form">
+                        <div class="form-group">
+                            <label for="pattern-input">正则表达式</label>
+                            <input type="text" id="pattern-input" name="pattern"
+                                   placeholder="例如: .*\\重要文件\\.*\.doc$" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pattern-name-input">规则名称</label>
+                            <input type="text" id="pattern-name-input" name="name"
+                                   placeholder="例如: 重要文档保护" required>
+                        </div>
+                        <div class="form-group-inline">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="pattern-enabled-input" name="enabled" checked>
+                                启用
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full"
+                                data-action="add-pattern">&#10133; 添加规则</button>
+                    </form>
+                </div>
+
+                <div class="card" data-component="pattern-test-card">
+                    <h2 class="card-title">&#128300; 测试匹配</h2>
+                    <form id="pattern-test-form" class="form" autocomplete="off"
+                          data-component="pattern-test-form">
+                        <div class="form-group">
+                            <label for="pattern-test-path">测试路径</label>
+                            <div class="input-with-btn">
+                                <input type="text" id="pattern-test-path" name="test_path"
+                                       placeholder="输入文件路径进行匹配测试" required>
+                                <button type="submit" class="btn btn-secondary" data-action="test-match">
+                                    &#128270; 测试
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="test-result" id="pattern-test-result" style="display: none;"
+                         data-component="pattern-test-result"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-history" class="tab-panel" data-component="history-panel">
+            <div class="history-stats" id="history-stats-cards" data-component="history-stats">
+                <div class="summary-card">
+                    <div class="summary-value" id="history-stat-total">0</div>
+                    <div class="summary-label">&#128203; 总任务数</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="history-stat-completed">0</div>
+                    <div class="summary-label">&#9989; 已完成</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="history-stat-failed">0</div>
+                    <div class="summary-label">&#10060; 失败</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="history-stat-stopped">0</div>
+                    <div class="summary-label">&#9209; 已停止</div>
+                </div>
+            </div>
+
+            <div class="card" data-component="history-filter-card">
+                <h2 class="card-title">&#128269; 筛选</h2>
+                <div class="form-row align-end">
+                    <div class="form-group">
+                        <label for="history-filter-status">状态筛选</label>
+                        <select id="history-filter-status" data-component="history-filter-status">
+                            <option value="">全部状态</option>
+                            <option value="completed">已完成</option>
+                            <option value="running">运行中</option>
+                            <option value="failed">失败</option>
+                            <option value="stopped">已停止</option>
+                            <option value="pending">等待中</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="history-filter-date-from">开始日期</label>
+                        <input type="date" id="history-filter-date-from"
+                               data-component="history-filter-date-from">
+                    </div>
+                    <div class="form-group">
+                        <label for="history-filter-date-to">结束日期</label>
+                        <input type="date" id="history-filter-date-to"
+                               data-component="history-filter-date-to">
+                    </div>
+                    <div class="form-group">
+                        <button type="button" id="btn-apply-filter" class="btn btn-primary"
+                                data-action="apply-history-filter">应用筛选</button>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" id="btn-export-history" class="btn btn-secondary"
+                                data-action="export-history">&#128229; 导出</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" data-component="history-table-card">
+                <h2 class="card-title">&#128218; 历史记录</h2>
+                <div class="table-scroll">
+                    <table class="table" id="history-table" data-component="history-table">
+                        <thead>
+                            <tr>
+                                <th class="col-expand"></th>
+                                <th>任务 ID</th>
+                                <th>目录</th>
+                                <th>文件数</th>
+                                <th>状态</th>
+                                <th>开始时间</th>
+                                <th>完成时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <tr class="table-empty">
+                                <td colspan="8">暂无历史记录</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination" id="history-pagination" data-component="history-pagination"
+                     style="display: none;">
+                    <button class="btn btn-sm btn-secondary" data-action="history-prev"
+                            id="btn-history-prev">&#9664; 上一页</button>
+                    <span class="page-info" id="history-page-info">第 1 页</span>
+                    <button class="btn btn-sm btn-secondary" data-action="history-next"
+                            id="btn-history-next">下一页 &#9654;</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="pattern-edit-modal" class="modal-overlay" style="display: none;"
+         data-component="pattern-edit-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">&#9998; 编辑规则</h2>
+                <button class="modal-close" data-action="close-pattern-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="pattern-edit-form" class="form" autocomplete="off"
+                      data-component="pattern-edit-form">
+                    <input type="hidden" id="pattern-edit-index" name="index">
+                    <div class="form-group">
+                        <label for="pattern-edit-pattern">正则表达式</label>
+                        <input type="text" id="pattern-edit-pattern" name="pattern" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pattern-edit-name">规则名称</label>
+                        <input type="text" id="pattern-edit-name" name="name" required>
+                    </div>
+                    <div class="form-group-inline">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="pattern-edit-enabled" name="enabled">
+                            启用
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" id="btn-validate-pattern" class="btn btn-secondary btn-sm"
+                                data-action="validate-pattern">&#128300; 验证正则</button>
+                        <span class="validation-result" id="pattern-edit-validation"
+                              data-component="pattern-edit-validation"></span>
+                    </div>
+                    <div class="form-actions modal-actions">
+                        <button type="submit" class="btn btn-primary" data-action="update-pattern">
+                            &#128190; 保存修改
+                        </button>
+                        <button type="button" class="btn btn-secondary"
+                                data-action="close-pattern-modal">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="export-modal" class="modal-overlay" style="display: none;"
+         data-component="export-modal">
+        <div class="modal modal-sm">
+            <div class="modal-header">
+                <h2 class="modal-title">&#128229; 导出历史记录</h2>
+                <button class="modal-close" data-action="close-export-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="export-form" class="form" data-component="export-form">
+                    <div class="form-group">
+                        <label for="export-format">导出格式</label>
+                        <select id="export-format" name="format">
+                            <option value="csv" selected>CSV</option>
+                            <option value="json">JSON</option>
+                        </select>
+                    </div>
+                    <div class="form-actions modal-actions">
+                        <button type="submit" class="btn btn-primary" data-action="do-export">
+                            &#128229; 导出
+                        </button>
+                        <button type="button" class="btn btn-secondary"
+                                data-action="close-export-modal">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container" data-component="toast-container"></div>
+
+    <script src="/static/js/main.js" defer></script>
+</body>
+</html>
